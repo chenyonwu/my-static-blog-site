@@ -32,7 +32,7 @@ export default {
       {
         text: '科箭',
         items: [
-          { text: 'qt-design 组件库', link: '/qt/qt-design/index' },
+          { text: 'qt-design 组件库', link: '/qt/qt-design/' },
         ]
       },
       {
@@ -113,6 +113,16 @@ export default {
           ]
         }
       ],
+      '/qt/qt-design/': [
+        { text: '首页', link: '/qt/qt-design/' },
+        {
+          text: 'qt-design 基本使用',
+          items: [
+            { text: 'table-view 组件使用详解', link: '/qt/qt-design/blogs/table-view' },
+            { text: 'form-view 组件使用详解', link: '/qt/qt-design/blogs/form-view' },
+          ]
+        }
+      ]
     },
     siteTitle: 'my static blog site',
     socialLinks: [
