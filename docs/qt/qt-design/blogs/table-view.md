@@ -52,38 +52,42 @@
 ### import 部分
 
 ```typescript
-import { Add, Edit, Delete } from '@icon-park/vue-next';
-import { lowerFirst, cloneDeep } from 'lodash-es';
-import { useDialog } from 'naive-ui';
-import { getToken } from '@/utils/auth';
-import { get, post } from '@/hooks/useRequest';
-import { useAddRoute } from '@/hooks/useRouters';
+import { Add, Edit, Delete } from "@icon-park/vue-next";
+import { lowerFirst, cloneDeep } from "lodash-es";
+import { useDialog } from "naive-ui";
+import { getToken } from "@/utils/auth";
+import { get, post } from "@/hooks/useRequest";
+import { useAddRoute } from "@/hooks/useRouters";
 import {
   queryOptions as defaultQueryOptions,
   tableColumns as defaultTableColumns,
-} from './config/index';
-import type { QueryModel, QueryOptions } from '@quantum-asia/qt-design/es/types/queryModel';
+} from "./config/index";
+import type {
+  QueryModel,
+  QueryOptions,
+} from "@quantum-asia/qt-design/es/types/queryModel";
 import type {
   ColumnProps,
   OnPageInfo,
   OnSelection,
-} from '@quantum-asia/qt-design/es/table/src/types';
-import type { VxeTableProps } from 'vxe-table';
-import type { PaginationProps } from 'naive-ui';
-import type { ExportProps, ImportProps } from '@quantum-asia/qt-design';
-import type { OnExportSubmit } from '@quantum-asia/qt-design/es/table-view/src/types';
-import type { MenuOptions } from '@quantum-asia/qt-design/es/context-menu/src/types';
+} from "@quantum-asia/qt-design/es/table/src/types";
+import type { VxeTableProps } from "vxe-table";
+import type { PaginationProps } from "naive-ui";
+import type { ExportProps, ImportProps } from "@quantum-asia/qt-design";
+import type { OnExportSubmit } from "@quantum-asia/qt-design/es/table-view/src/types";
+import type { MenuOptions } from "@quantum-asia/qt-design/es/context-menu/src/types";
 ```
 
 ### defineOptions 部分
 
 ```typescript
-defineOptions({ name: 'LoadingCabin' });
+defineOptions({ name: "LoadingCabin" });
 const router = useRouter();
 const dialog = useDialog();
 ```
 
 ### ref 部分
+
 ```typescript
 const queryModel ref<QueryModel>();
 const queryOptions = ref<QueryOptions>(defaultQueryOptions);
@@ -142,7 +146,7 @@ const selection = ref<Record<string, any>>({});
 const menuOptions = computed<MenuOptions>(() => {
   return [
     {
-      label: '新建',
+      label: "新建",
       icon: Add,
       multiple: true,
       click: (): void => {
@@ -150,7 +154,7 @@ const menuOptions = computed<MenuOptions>(() => {
       },
     },
     {
-      label: '编辑',
+      label: "编辑",
       icon: Edit,
       multiple: false,
       click: (): void => {
@@ -158,19 +162,19 @@ const menuOptions = computed<MenuOptions>(() => {
       },
     },
     {
-      label: '删除',
+      label: "删除",
       icon: Delete,
       multiple: true,
       click: (): void => {
         dialog.warning({
-          title: '提示',
-          content: '确定删除选中数据?',
-          positiveText: '确定',
-          negativeText: '取消',
+          title: "提示",
+          content: "确定删除选中数据?",
+          positiveText: "确定",
+          negativeText: "取消",
           onPositiveClick: (): void => {
             // 注意 item.id 需要修改
             // 支持批量删除
-            delLoadingCabin(unref(selection).map(item => item.id));
+            delLoadingCabin(unref(selection).map((item) => item.id));
             // 不可批量删除
             delLoadingCabin(unref(selection)[0].id);
           },
@@ -191,7 +195,7 @@ watch(
   },
   {
     deep: true,
-  },
+  }
 );
 ```
 
@@ -200,17 +204,17 @@ watch(
 #### pageInfoEvent
 
 ```typescript
-const handlePageInfo: OnPageInfo = pageInfo => {
+const handlePageInfo: OnPageInfo = (pageInfo) => {
   unref(pageProps).page = pageInfo.page;
   unref(pageProps).pageSize = pageInfo.pageSize;
   getList();
-}
+};
 ```
 
 #### selectionEvent
 
 ```typescript
-const handleSelection: OnSelection = rows => {
+const handleSelection: OnSelection = (rows) => {
   if (rows.length) {
     selection.value = rows;
   }
@@ -220,34 +224,67 @@ const handleSelection: OnSelection = rows => {
 #### exportSubmitEvent
 
 ```typescript
+/*
+  导出请求不能使用 for 循环的方式，这样容易产生并发错误，接口可能会崩溃
+
+  解决方法：
+    1.计算用户所需要导出的总数据量：dataNum = (max - min + 1) * pageSize
+    2.如果 dataNum < 20000，仅调用一次接口进行导出
+    3.如果 dataNum > 20000，按照 pageSize = 20000 再调用接口进行导出，减少请求次数
+*/
 const handleExportSubmit: OnExportSubmit = async ({ min, max }) => {
+  const dataNum = unref(pageProps).pageSize! * (max - min + 1);
+  const newMax = Math.ceil(dataNum / 20000);
+
   const newQueryModel = queryModel.value.map((item: any) => {
-    return item.value instanceof Array ? { ...item, value: [item.value.join()] } : item;
+    return item.value instanceof Array
+      ? { ...item, value: [item.value.join()] }
+      : item;
   });
-  const requestList = Array.from({ length: max - min + 1 }, (_, i) => {
-    const currentPage = min + i;
-    return post('/api/tms/assembleInfo/queryAssembleInfoPage', {
+
+  if (dataNum < 20000) {
+    const res = await post("url", {
       pageInfo: {
-        currentPage,
-        pageSize: unref(pageProps).pageSize,
+        currentPage: 1,
+        pageSize: dataNum,
         isGetTotalCount: true,
       },
       queryModel: {
         items: [...newQueryModel],
       },
     });
-  });
-  const result = await Promise.all(requestList);
-  const resData = result.flatMap(item => item.list || []);
-  return { columns: unref(tableColumns), data: resData };
-}
+
+    return { columns: unref(tableColumns), data: res.list };
+  } else {
+    const requestList = Array.from({ length: newMax - min + 1 }, (_, i) => {
+      const currentPage = min + i;
+
+      return post("url", {
+        pageInfo: {
+          currentPage,
+          pageSize:
+            currentPage === newMax
+              ? dataNum - (currentPage - 1) * 20000
+              : 20000,
+        },
+        queryModel: {
+          items: [...newQueryModel],
+        },
+      });
+    });
+
+    const result = await Promise.all(requestList);
+    const resData = result.flatMap((item) => item.list || []);
+    return { columns: unref(tableColumns), data: resData };
+  }
+};
 ```
 
 #### importFinishEvent
 
 ```typescript
 const handleImportFinish = (): void => {
-  console.log('导入完毕');
+  console.log("导入完毕");
 };
 ```
 
@@ -255,17 +292,17 @@ const handleImportFinish = (): void => {
 
 ```typescript
 const handleCreate = (): void => {
-  const compName = 'loadingCabinCreate';
-  const routePath = 'loadingCabinCreate-new';
+  const compName = "loadingCabinCreate";
+  const routePath = "loadingCabinCreate-new";
 
   useAddRoute(router, {
-    name: '组托装柜-新建',
+    name: "组托装柜-新建",
     path: routePath,
     compName: compName,
-    compKey: 'loadingCabinCreate',
+    compKey: "loadingCabinCreate",
   });
 
-  router.replace('loadingCabinCreate-new');
+  router.replace("loadingCabinCreate-new");
 };
 ```
 
@@ -301,11 +338,11 @@ const rowClick = (code: string, params? any): void => {
 const getList = async (): Promise<void> => {
   const { page, pageSize } = urnef(pageProps);
 
-  const res = await post('url', {
+  const res = await post("url", {
     pageInfo: {
       currentPage: page,
       pageSize,
-      sortField: 'CREATED_DATE DESC',
+      sortField: "CREATED_DATE DESC",
       isGetTotalCount: true,
     },
     queryModel: {
@@ -326,7 +363,7 @@ const getList = async (): Promise<void> => {
 // 批量删除
 const delLoadingCabin = async (ids: string[]) => {
   await post(
-    'url', 
+    "url",
     {
       ids,
     },
@@ -334,7 +371,7 @@ const delLoadingCabin = async (ids: string[]) => {
       requestOptions: {
         globalMessage: true,
       },
-    },
+    }
   );
 
   getList();
@@ -343,7 +380,7 @@ const delLoadingCabin = async (ids: string[]) => {
 // 仅支持单行数据删除
 const delLoadingCabin = async (id: string) => {
   await post(
-    'url',
+    "url",
     {
       ids: [id],
     },
@@ -351,7 +388,7 @@ const delLoadingCabin = async (id: string) => {
       requestOptions: {
         globalMessage: true,
       },
-    },
+    }
   );
 
   getList();
@@ -363,16 +400,14 @@ const delLoadingCabin = async (id: string) => {
 ### import
 
 ```typescript
-import type { ColumnProps } from '@quantum-asia/qt-design/es/table/src/types';
-import type { QueryOptions } from '@quantum-asia/qt-design/es/types/queryModel';
+import type { ColumnProps } from "@quantum-asia/qt-design/es/table/src/types";
+import type { QueryOptions } from "@quantum-asia/qt-design/es/types/queryModel";
 ```
 
 ### queryOptions
 
 ```typescript
-export const queryOptions: QueryOptions = [
-
-];
+export const queryOptions: QueryOptions = [];
 ```
 
 input 类型
@@ -424,36 +459,36 @@ date 类型
 }
 ```
 
-### tableColumns 
+### tableColumns
 
 ```typescript
 export const tableColumns: ColumnProps[] = [
   {
-    type: 'checkbox',
+    type: "checkbox",
     width: 60,
     resizable: false,
-    fixed: 'left',
-    align: 'center',
+    fixed: "left",
+    align: "center",
   },
   {
-    type: 'seq',
+    type: "seq",
     width: 60,
     resizable: false,
-    fixed: 'left',
-    align: 'center',
+    fixed: "left",
+    align: "center",
   },
   {
-    title: '组托ID',
-    field: 'assembleId',
+    title: "组托ID",
+    field: "assembleId",
     width: 200,
   },
   {
-    title: '包装类型',
-    field: 'packageType',
+    title: "包装类型",
+    field: "packageType",
     width: 200,
     // select 类型使用数据字典加载
     params: {
-      dictionaryKey: 'key',
+      dictionaryKey: "key",
     },
   },
 ];

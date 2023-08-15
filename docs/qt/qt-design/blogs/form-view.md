@@ -52,26 +52,26 @@
 ### import
 
 ```typescript
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from "lodash-es";
 // 生产环境下关闭页签
-import { openTab, closeTab } from '@/utils/toolsTab';
+import { openTab, closeTab } from "@/utils/toolsTab";
 // 开发环境下关闭页签
-import { useAddRoute, useCloseCurrentRoute } from '@/hooks/useRouters';
-import { get, post } from '@/hooks/useRequest';
-import { options as defaultOptions, baseData } from '../config/create';
+import { useAddRoute, useCloseCurrentRoute } from "@/hooks/useRouters";
+import { get, post } from "@/hooks/useRequest";
+import { options as defaultOptions, baseData } from "../config/create";
 import type {
   OnMenuClick,
   OnQuickSearch,
   QueryModelAssemble,
   TabOptions,
-} from '@quantum-asia/qt-design/es/form-view/src/types';
-import type { QueryPageInfo } from '@quantum-asia/qt-design/es/form/src/types';
+} from "@quantum-asia/qt-design/es/form-view/src/types";
+import type { QueryPageInfo } from "@quantum-asia/qt-design/es/form/src/types";
 ```
 
 ### defineOptions
 
 ```typescript
-defineOptions({ name: 'LoadingCabinCreate' });
+defineOptions({ name: "LoadingCabinCreate" });
 const router = useRouter();
 ```
 
@@ -103,7 +103,7 @@ const queryPageInfo = ref<QueryPageInfo>({
   },
 });
 // 在有多个放大镜的情况下
-const showMagnifierField = ref<string>('');
+const showMagnifierField = ref<string>("");
 ```
 
 ### watch queryModel
@@ -117,13 +117,13 @@ watch(
     // 一个放大镜的情况下
     getContainerNoList();
     // 多个放大镜的情况下
-    if (showMagnifierField.value == 'containerNo') {
+    if (showMagnifierField.value == "containerNo") {
       getContainerNoList();
     }
-    if (showMagnifierField.value == 'packageDesc') {
+    if (showMagnifierField.value == "packageDesc") {
       getPackageDescList();
     }
-  },
+  }
 );
 ```
 
@@ -134,48 +134,48 @@ watch(
 ```typescript
 const handleMenuClick: OnMenuClick = (name: string): void => {
   switch (name) {
-    case 'create':
-      const compName = 'loadingCabinCreate';
-      const routePath = 'loadingCabinCreate-new';
+    case "create":
+      const compName = "loadingCabinCreate";
+      const routePath = "loadingCabinCreate-new";
 
       useAddRoute(router, {
-        name: '组托装柜-新建',
+        name: "组托装柜-新建",
         path: routePath,
         compName: compName,
-        compKey: 'loadingCabinCreate',
+        compKey: "loadingCabinCreate",
       });
 
-      router.replace('loadingCabinCreate-new');
+      router.replace("loadingCabinCreate-new");
 
       break;
-    case 'save':
+    case "save":
       saveLoadingCabin();
       break;
-    case 'close':
+    case "close":
       // 生产环境下
       closeTab();
       // 开发环境下
       useCloseCurrentRoute(router.currentRoute.value.name as string);
       break;
   }
-}
+};
 ```
 
 #### pageInfoEvent
 
 ```typescript
 const handlePageInfo = ({ params }) => {
-  if (params.field == 'containeNo') {
+  if (params.field == "containeNo") {
     unref(queryPageInfo).containerNo.page = params.options.page;
     unref(queryPageInfo).containerNo.pageSize = params.options.pageSize;
     getContainerNoList();
   }
-  if (params.field == 'packageDesc') {
+  if (params.field == "packageDesc") {
     unref(queryPageInfo).packageDesc.page = params.options.page;
     unref(queryPageInfo).packageDesc.pageSize = params.options.pageSize;
     getPackageDescList();
   }
-}
+};
 ```
 
 #### quickSearchEvent
@@ -183,23 +183,23 @@ const handlePageInfo = ({ params }) => {
 ```typescript
 const handleQuickSearch: OnQuickSearch = ({ name, params }): void => {
   switch (name) {
-    case 'baseData':
-      if (params.field == 'containerNo' && params.show) {
+    case "baseData":
+      if (params.field == "containerNo" && params.show) {
         // 仅一个放大镜
         getContainerNoList();
         // 多个
-        showMagnifierField.value = 'containerNo';
+        showMagnifierField.value = "containerNo";
         getContainerNoList();
       }
-      if (params.field == 'packageDesc' && params.show) {
+      if (params.field == "packageDesc" && params.show) {
         // 仅一个放大镜
         getPackageDescList();
         // 多个
-        showMagnifierField.value = 'PackageDesc';
+        showMagnifierField.value = "PackageDesc";
         getPackageDescList();
       }
   }
-}
+};
 ```
 
 ### 放大镜获取数据
@@ -208,11 +208,11 @@ const handleQuickSearch: OnQuickSearch = ({ name, params }): void => {
 const getContainerNoList = async (): Promise<void> => {
   const { page, pageSize } = unref(queryPageInfo).containerNo;
 
-  const res = await post('url', {
+  const res = await post("url", {
     pageInfo: {
       currentPage: page,
       pageSize,
-      sortField: 'CREATED_DATE DESC',
+      sortField: "CREATED_DATE DESC",
       isGetTotalCount: true,
     },
     queryModel: {
@@ -229,16 +229,16 @@ const getContainerNoList = async (): Promise<void> => {
 
 ```typescript
 const saveLodingCabin = async (): Promise<void> => {
-  const res = await post('url', {
+  const res = await post("url", {
     ...unref(values).baseData,
   });
 
   // 多个放大镜的情况下
-  showMagnifierField.value = '';
+  showMagnifierField.value = "";
 
   // 关闭当前路由，跳转到编辑页面
-  const code = baseData['ttID'];
-  const compName = 'loadingCabinEdit';
+  const code = baseData["ttID"];
+  const compName = "loadingCabinEdit";
   const routePath = `${lowerFirst(compName)}-${code}`;
 
   // 生产环境下
@@ -252,7 +252,7 @@ const saveLodingCabin = async (): Promise<void> => {
     compKey: `loadingCabinEdit${code}`,
   });
   useCloseCurrentRoute(router.currentRoute.value.name as string);
-  router.replace({ path: '/loadingCabinEdit', query: { code: res } });
+  router.replace({ path: "/loadingCabinEdit", query: { code: res } });
 };
 ```
 
@@ -263,15 +263,15 @@ const saveLodingCabin = async (): Promise<void> => {
 通用
 
 ```typescript
-import { TabOptions } from '@quantum-asia/qt-design/es/form-view/src/types';
-import { FormList } from '@quantum-asia/qt-design/es/form/src/types';
+import { TabOptions } from "@quantum-asia/qt-design/es/form-view/src/types";
+import { FormList } from "@quantum-asia/qt-design/es/form/src/types";
 ```
 
 在有放大镜的情况下
 
 ```typescript
-import { ColumnProps } from '@quantum-asia/qt-design/es/table/src/types';
-import { QueryOptions } from '@quantum-asia/qt-design/es/types/queryModel';
+import { ColumnProps } from "@quantum-asia/qt-design/es/table/src/types";
+import { QueryOptions } from "@quantum-asia/qt-design/es/types/queryModel";
 ```
 
 ### options
@@ -279,26 +279,26 @@ import { QueryOptions } from '@quantum-asia/qt-design/es/types/queryModel';
 ```typescript
 export const formViewOptions: TabOptions = [
   {
-    title: '组托装柜-新建',
-    name: 'loadingCabinCreate',
+    title: "组托装柜-新建",
+    name: "loadingCabinCreate",
     group: [
       {
-        compType: 'form',
-        title: '基础信息',
-        name: 'baseData',
+        compType: "form",
+        title: "基础信息",
+        name: "baseData",
         formOptions: baseDataFormOptions,
         formProps: {
-          labelWidth: '130px',
+          labelWidth: "130px",
         },
       },
     ],
     menus: [
       {
-        title: '关闭',
-        name: 'close',
+        title: "关闭",
+        name: "close",
         show: true,
         disabled: false,
-        type: 'default',
+        type: "default",
       },
     ],
   },
@@ -309,18 +309,16 @@ export const formViewOptions: TabOptions = [
 
 ```typescript
 export const baseData: { [key: string]: any } = {
-  assembleId: '',
+  assembleId: "",
   packageVolume: 0,
-  batchBulk: 'Y',
+  batchBulk: "Y",
 };
 ```
 
 ### baseDataFormOptions
 
 ```typescript
-export const baseDataFormOptions: FormList = [
-
-]
+export const baseDataFormOptions: FormList = [];
 ```
 
 input 类型
@@ -418,11 +416,11 @@ switch 类型
 ```typescript
 export const packageDescQueryOptions: QueryOptions = [
   {
-    compType: 'input',
-    label: '包装标识',
-    field: 'packgid',
+    compType: "input",
+    label: "包装标识",
+    field: "packgid",
   },
-]
+];
 ```
 
 ### tableColumns
@@ -432,23 +430,387 @@ export const packageDescQueryOptions: QueryOptions = [
 ```typescript
 export const packageDescTableColumns: ColumnProps[] = [
   {
-    type: 'radio',
+    type: "radio",
     width: 60,
     resizable: false,
-    fixed: 'left',
-    align: 'center',
+    fixed: "left",
+    align: "center",
   },
   {
-    type: 'seq',
+    type: "seq",
     width: 60,
     resizable: false,
-    fixed: 'left',
-    align: 'center',
+    fixed: "left",
+    align: "center",
   },
   {
-    title: '包装标识',
-    field: 'packgid',
+    title: "包装标识",
+    field: "packgid",
     width: 200,
   },
 ];
+```
+
+## edit/index.vue template 部分
+
+存在放大镜的情况下
+
+```vue
+<template>
+  <qt-form-view
+    v-model:query-model="queryModel"
+    v-model:value="values"
+    :options="options"
+    :table-data="tableData"
+    :query-data="queryData"
+    :query-page-info="queryPageInfo"
+    :table-page-info="tablePageInfo"
+    @menu-click="handleMenuClick"
+    @collapse-menu-click="handleCollapseMenuClick"
+    @page-info="handlePageInfo"
+    @selection="handleSelection"
+    @quick-search="handleQuickSearch"
+  />
+</template>
+```
+
+不存在放大镜的情况下
+
+```vue
+<template>
+  <qt-form-view
+    v-model:query-model="queryModel"
+    v-model:value="values"
+    :options="options"
+    :table-data="tableData"
+    :table-page-info="tablePageInfo"
+    @menu-click="handlePageInfo"
+    @collapse-menu-click="handleCollapseMenuClick"
+    @page-info="handlePageInfo"
+    @selection="handleSelection"
+  />
+</template>
+```
+
+如果折叠栏存在数据表格，且该表格中的数据需要有 新增和编辑 功能时，需要额外添加 form-modal 弹窗
+
+form-modal 弹窗中存在放大镜的情况下
+
+```vue
+<template>
+  <qt-form-modal
+    v-model:query-model="materialQueryModel"
+    v-model:value="materialFormValues"
+    :show="materialShow"
+    :form-options="materialFormOptions"
+    :form-props="{
+      labelWidth: '130px',
+    }"
+    :title="'物料信息'"
+    :width="'50vw'"
+    :height="'100%'"
+    :query-data="materialQueryData"
+    :query-page-info="materialQueryPageInfo"
+    :menus="materialMenus"
+    @menu-click="handleMaterialMenuClick"
+    @quick-search="handleMaterialQuickSearch"
+    @page-info="handleMaterialPageInfo"
+    @submit="handleMaterialSubmit('save')"
+    @after-leave="handleMaterialAfterLeave"
+  />
+</template>
+```
+
+## edit/index.vue script 部分
+
+### import
+
+```typescript
+// 按钮鉴权
+import { useGetBtnAuth } from "@/hooks/useBtnAuth";
+import { Add, Edit, Delete } from "@icon-park/vue-next";
+import { useDialog } from "naive-ui";
+import { cloneDeep, lowerFirst } from "lodash-es";
+// 正式环境下关闭页签
+import { closeTab } from "@/utils/toolsTab";
+import { get, post } from "@/hooks/useRequest";
+import { options as defaultOptions, baseData } from "../config/edit";
+import {
+  materialFormValues as defaultMaterialFormValues,
+  materialFormOptions as defaultMaterialFormOptions,
+} from "../config/modal";
+import { getGroupOption } from "@quantum-asia/qt-design";
+import type {
+  OnMenuClick,
+  OnPageInfo,
+  OnQuickSearch,
+  QueryModelAssemble,
+  TabOptions,
+} from "@quantum-asia/qt-design/es/form-view/src/types";
+import type { QueryPageInfo } from "@quantum-asia/qt-design/es/form/src/types";
+import type { QueryModel } from "@quantum-asia/qt-design/es/types/queryModel";
+import type { MenuOptions } from "@quantum-asia/qt-design/es/context-menu/src/types";
+```
+
+### defineOptions
+
+```typescript
+defineOptions({ name: "LoadingCabinEdit" });
+const router = useRouter();
+const route = useRoute();
+const dialog = useDialog();
+const btns = useGetBtnAuth();
+```
+
+### ref
+
+form-view 通用
+
+```typescript
+const queryModel = ref<QueryModelAssemble>({
+  baseData: [],
+  materialListData: [],
+  bomListData: [],
+});
+const values = ref<Record<string, any>>({
+  baseData: cloneDeep(baseData),
+});
+const options = ref<TabOptions>(cloneDeep(defaultOptions));
+const tableData = ref<Record<string, any>>({
+  materialListData: [] as Array<object>,
+  bomListData: [] as Array<object>,
+});
+const tablePageInfo = ref<QueryPageInfo>({
+  materialListData: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+  bomListData: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+});
+const materialSelection = ref<Record<string, any>>({});
+const bomSelection = ref<Record<string, any>>({});
+const id = ref(route.query.code);
+```
+
+form-view 基础资料表单中存在放大镜的情况下
+
+```typescript
+const queryData = ref<Record<string, any>>({
+  containerNo: [],
+  packageDesc: [],
+});
+const queryPageInfo = ref<QueryPageInfo>({
+  containerNo: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+  packageDesc: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+});
+```
+
+form-modal 通用
+
+```typescript
+// material
+const materialFormValues = ref<Record<string, any>>(
+  cloneDeep(defaultMaterialFormValues)
+);
+const materialFormOptions = ref(cloneDeep(defaultMaterialFormOptions));
+const materialShow = ref(false);
+// 新增和编辑有差异时
+const materialStatus = ref<"" | "add" | "edit">(""); // 弹窗状态：隐藏、新增、编辑
+// bom
+const bomFormValues = ref<Record<string, any>>(cloneDeep(defaultBomFormValues));
+const bomFormOptions = ref(cloneDeep(defaultBomFormOptions));
+const bomShow = ref(false);
+// 新增和编辑有差异时
+const bomStatus = ref<"" | "add" | "edit">("");
+```
+
+form-modal 中存在放大镜的情况下
+
+```typescript
+// material
+const materialQueryModel = ref<QueryModel>([]);
+const materialQueryData = ref<Record<string, any>>({
+  itemCode: [],
+});
+const materialQueryPageInfo = ref<QueryPageInfo>({
+  itemCode: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+});
+// bom
+const bomQueryModel = ref<QueryModel>([]);
+const bomQueryData = ref<Record<string, any>>({
+  itemCode: [],
+});
+const bomQueryPageInfo = ref<QueryPageInfo>({
+  itemCode: {
+    page: 1,
+    pageSize: 20,
+    itemCount: 0,
+  },
+});
+```
+
+### menuOptions
+
+```typescript
+const materialMenuOptions = computed<MenuOptions>(() => {
+  return [
+    {
+      label: "新建",
+      icon: Add,
+      // 按钮鉴权
+      hidden: !btn.includes("UDF_ASSEMBLEINFO_ITEM_INSERT"),
+      multiple: true,
+      click: () => {
+        addMaterial();
+      },
+    },
+    {
+      label: "编辑",
+      icon: Edit,
+      hidden: !btn.includes("UDF_ASSEMBLEINFO_ITEM_EDIT"),
+      multiple: false,
+      click: () => {
+        editMaterial(unref(materialSelection)[0]);
+      },
+    },
+    {
+      label: "删除",
+      icon: Delete,
+      hidden: !btns:includes('UDF_ASSEMBLEINFO_ITEM_DELETE'),
+      multiple: true,
+      click: () => {
+        dialog.warning({
+          title: '提示',
+          content: '确定删除选中数据?',
+          positiveText: '确定',
+          negativeText: '取消',
+          onPositiveClick: (): void => {
+            delMaterial(unref(materialSelection).map(item => item.id ));
+          },
+        });
+      },
+    },
+  ];
+});
+```
+
+### watch
+
+form-view 在有数据表格的情况下
+
+```typescript
+watch(
+  () => unref(queryModel).materialListData,
+  () => {
+    unref(tablePageInfo).materialListData.page = 1;
+    getMaterialList();
+  }
+);
+
+watch(
+  () => unref(queryModel).bomListData,
+  () => {
+    unref(tablePageInfo).bomListData.page = 1;
+    getBomListData();
+  }
+);
+```
+
+form-view 表单部分有放大镜的情况下
+
+```typescript
+watch(
+  () => unref(queryModel).baseData,
+  () => {
+    // 多个放大镜的情况下
+    if (showMagnifierFiled.value == "containerNo") {
+      unref(queryPageInfo).containerNo.page = 1;
+      getContainerNoList();
+    }
+    if (showMagnifierField.value == "packageDesc") {
+      unref(queryPageInfo).packageDesc.page = 1;
+      getPackageDescList();
+    }
+  }
+);
+```
+
+form-modal 新增和编辑弹窗有放大镜的情况下
+
+```typescript
+watch(
+  () => unref(materialQueryModel),
+  () => {
+    unref(materialQueryPageInfo).itemCode.page = 1;
+    getItemList();
+  }
+);
+
+watch(
+  () => unref(bomQueryModel),
+  () => {
+    unref(bomQueryPageInfo).itemCode.page = 1;
+  }
+);
+```
+
+### onMounted && init
+
+```typescript
+onMounted(() => {
+  init();
+});
+
+const init = () => {
+  const groupOptionConfig = {
+    loadingCabinEdit: {
+      materialListData: materialMenuOptions.value,
+      bomListData: bomMenuOptions.value,
+    },
+  };
+
+  Object.entries(groupOptionConfig).forEach(([group, options]) => {
+    Object.entries(options).forEach(([key, value]) => {
+      getGroupOption(group, key, unref(options)).tableMenuOptions = value;
+    });
+  });
+
+  getLoadingCabinDetail();
+  getMaterialListData();
+  getBomListData();
+};
+```
+
+### 事件处理
+
+#### menuClickEvent
+
+```typescript
+const handleMenuClick: OnMenuClick = (name: string): void => {
+  switch (name) {
+    case "close":
+      closeTab();
+      break;
+    case "save":
+      saveLoadingCabin();
+      break;
+  }
+};
 ```
